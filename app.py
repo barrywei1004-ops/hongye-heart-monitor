@@ -1,12 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-
-st.markdown("""
-<style>
-...
-</style>
-""", unsafe_allow_html=True)
+import requests
+from datetime import date
 
 st.set_page_config(page_title="紅葉心跳監控", layout="centered")
 
@@ -18,13 +14,26 @@ WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyNeX3uM-rhdY428GM44G7CmQ
 st.markdown("""
 <style>
 .block-container {
-    padding-top: 1rem;
+    padding-top: 4rem;
     padding-left: 1rem;
     padding-right: 1rem;
+    max-width: 760px;
 }
-h1 { font-size: 32px !important; }
-h2, h3 { font-size: 26px !important; }
-[data-testid="stMetricValue"] { font-size: 42px; }
+h1 {
+    font-size: 34px !important;
+    font-weight: 800 !important;
+    margin-bottom: 1.5rem !important;
+}
+h2, h3 {
+    font-size: 26px !important;
+    font-weight: 700 !important;
+}
+[data-testid="stMetricValue"] {
+    font-size: 42px;
+}
+[data-baseweb="select"] {
+    margin-bottom: 1.5rem;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -65,6 +74,10 @@ def load_data():
 
 df = load_data()
 
+if df.empty:
+    st.error("目前沒有可用資料，請確認 Google Sheet 是否有正確填寫日期與心跳率。")
+    st.stop()
+
 st.title("紅葉心跳監控")
 
 page = st.selectbox(
@@ -77,6 +90,7 @@ if page == "團體監控":
 
     group_df = df.groupby("日期", as_index=False)["平均心跳率"].mean()
     latest_avg = group_df.iloc[-1]["平均心跳率"]
+    group_avg_line = group_df["平均心跳率"].mean()
 
     st.metric("今日團體平均", f"{latest_avg:.1f} bpm")
 
@@ -87,9 +101,16 @@ if page == "團體監控":
         markers=True
     )
 
+    fig.add_hline(
+        y=group_avg_line,
+        line_dash="dash",
+        annotation_text=f"團體平均線：{group_avg_line:.1f} bpm",
+        annotation_position="top left"
+    )
+
     fig.update_layout(
         height=420,
-        margin=dict(l=10, r=10, t=30, b=10),
+        margin=dict(l=10, r=10, t=50, b=10),
         xaxis_title="日期",
         yaxis_title="心跳率"
     )
@@ -109,6 +130,7 @@ elif page == "個人監控":
 
     athlete_df = df[df["選手"] == selected_athlete]
     latest_hr = athlete_df.iloc[-1]["平均心跳率"]
+    athlete_avg_line = athlete_df["平均心跳率"].mean()
 
     st.metric(
         f"{selected_athlete} 今日心跳率",
@@ -122,9 +144,16 @@ elif page == "個人監控":
         markers=True
     )
 
+    fig.add_hline(
+        y=athlete_avg_line,
+        line_dash="dash",
+        annotation_text=f"個人平均線：{athlete_avg_line:.1f} bpm",
+        annotation_position="top left"
+    )
+
     fig.update_layout(
         height=420,
-        margin=dict(l=10, r=10, t=30, b=10),
+        margin=dict(l=10, r=10, t=50, b=10),
         xaxis_title="日期",
         yaxis_title="心跳率"
     )
