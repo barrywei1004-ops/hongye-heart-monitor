@@ -4,7 +4,7 @@ import plotly.express as px
 import requests
 from datetime import date
 
-st.set_page_config(page_title="紅葉心跳監控", layout="centered")
+st.set_page_config(page_title="紅葉國小疲勞監控系統", layout="centered")
 
 SHEET_ID = "1ySyEo3isdzzpOtqvitNZrrW-ucznre5RLsFxRLn6Czs"
 CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
@@ -86,7 +86,7 @@ page = st.selectbox(
 )
 
 if page == "團體監控":
-    st.subheader("團體平均心跳率")
+    st.subheader("團體靜止心跳率")
 
     group_df = df.groupby("日期", as_index=False)["平均心跳率"].mean()
     latest_avg = group_df.iloc[-1]["平均心跳率"]
