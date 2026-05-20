@@ -119,7 +119,7 @@ if page == "團體監控":
 
 
 elif page == "個人監控":
-    st.subheader("個人平均心跳率")
+    st.subheader("個人靜止心跳率")
 
     athletes = sorted(df["選手"].unique())
 
@@ -162,7 +162,7 @@ elif page == "個人監控":
 
 
 elif page == "新增資料":
-    st.subheader("新增心跳資料")
+    st.subheader("新增今日資料")
 
     athletes = sorted(df["選手"].unique())
 
