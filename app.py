@@ -1,8 +1,12 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import requests
-from datetime import date
+
+st.markdown("""
+<style>
+...
+</style>
+""", unsafe_allow_html=True)
 
 st.set_page_config(page_title="紅葉心跳監控", layout="centered")
 
