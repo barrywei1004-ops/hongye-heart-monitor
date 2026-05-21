@@ -6,7 +6,7 @@ from datetime import date
 
 st.set_page_config(page_title="紅葉國小疲勞監控系統", layout="centered")
 
-SHEET_ID = "1ySyEo3isdzzpOtqvitNZrrW-ucznre5RLsFxRLn6Czs" 
+SHEET_ID = "1ySyEo3isdzzpOtqvitNZrrW-ucznre5RLsFxRLn6Czs"
 CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
 
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyNeX3uM-rhdY428GM44G7CmQfIxl9s_jwZLkL5z0nZm65dV8skOKfFLeuJmRazUChO/exec"
@@ -160,6 +160,7 @@ elif page == "個人監控":
 
     st.plotly_chart(fig, use_container_width=True)
 
+
 elif page == "選手狀態總覽":
     st.subheader("選手狀態總覽")
 
@@ -187,15 +188,55 @@ elif page == "選手狀態總覽":
     overview_df["今日靜止心跳率"] = overview_df["今日靜止心跳率"].round(1)
     overview_df["平均靜止心跳率"] = overview_df["平均靜止心跳率"].round(1)
 
+    overview_df["狀態"] = overview_df.apply(
+        lambda row:
+        "🔴" if row["今日靜止心跳率"] - row["平均靜止心跳率"] > 2
+        else (
+            "🟡" if abs(row["今日靜止心跳率"] - row["平均靜止心跳率"]) <= 2
+            else "🟢"
+        ),
+        axis=1
+    )
+
     overview_df = overview_df[
-        ["選手姓名", "今日靜止心跳率", "平均靜止心跳率"]
+        ["選手姓名", "今日靜止心跳率", "平均靜止心跳率", "狀態"]
     ]
 
+    def highlight_status(row):
+        today = row["今日靜止心跳率"]
+        avg = row["平均靜止心跳率"]
+        diff = today - avg
+
+        styles = ["", "", "", ""]
+
+        if diff > 2:
+            styles[1] = "color: red; font-weight: bold"
+            styles[3] = "color: red; font-weight: bold; font-size: 22px"
+        elif -2 <= diff <= 2:
+            styles[1] = ""
+            styles[3] = "font-size: 22px"
+        else:
+            styles[1] = "color: green; font-weight: bold"
+            styles[3] = "color: green; font-weight: bold; font-size: 22px"
+
+        return styles
+
+    styled_df = overview_df.style.apply(
+        highlight_status,
+        axis=1
+    )
+
     st.dataframe(
-        overview_df,
+        styled_df,
         use_container_width=True,
         hide_index=True
     )
+
+    st.caption("""
+    🔴 高於個人平均 2 bpm 以上：疲勞風險偏高  
+    🟡 接近個人平均（±2 bpm）：正常波動  
+    🟢 低於個人平均 2 bpm 以上：恢復狀態良好
+    """)
 
 
 elif page == "新增資料":
