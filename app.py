@@ -4,9 +4,13 @@ import plotly.express as px
 import requests
 from datetime import date
 
-st.set_page_config(page_title="紅葉國小疲勞監控系統", layout="centered")
+st.set_page_config(
+    page_title="紅葉國小疲勞監控系統",
+    layout="centered"
+)
 
 SHEET_ID = "1ySyEo3isdzzpOtqvitNZrrW-ucznre5RLsFxRLn6Czs"
+
 CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
 
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyNeX3uM-rhdY428GM44G7CmQfIxl9s_jwZLkL5z0nZm65dV8skOKfFLeuJmRazUChO/exec"
@@ -19,20 +23,23 @@ st.markdown("""
     padding-right: 1rem;
     max-width: 760px;
 }
+
 h1 {
     font-size: 34px !important;
     font-weight: 800 !important;
-    margin-bottom: 1.5rem !important;
 }
+
 h2, h3 {
-    font-size: 26px !important;
+    font-size: 28px !important;
     font-weight: 700 !important;
 }
+
 [data-testid="stMetricValue"] {
     font-size: 42px;
 }
+
 [data-baseweb="select"] {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.2rem;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -40,10 +47,13 @@ h2, h3 {
 
 @st.cache_data(ttl=60)
 def load_data():
+
     raw = pd.read_csv(CSV_URL, header=None)
 
     names = raw.iloc[0, 1:].tolist()
+
     data = raw.iloc[1:, :].copy()
+
     data.columns = ["日期"] + names
 
     data["日期"] = (
@@ -54,7 +64,11 @@ def load_data():
     )
 
     data["日期"] = "2026-" + data["日期"]
-    data["日期"] = pd.to_datetime(data["日期"], errors="coerce")
+
+    data["日期"] = pd.to_datetime(
+        data["日期"],
+        errors="coerce"
+    )
 
     long_df = data.melt(
         id_vars="日期",
@@ -67,7 +81,9 @@ def load_data():
         errors="coerce"
     )
 
-    long_df = long_df.dropna(subset=["日期", "平均心跳率"])
+    long_df = long_df.dropna(
+        subset=["日期", "平均心跳率"]
+    )
 
     return long_df
 
@@ -75,25 +91,42 @@ def load_data():
 df = load_data()
 
 if df.empty:
-    st.error("目前沒有可用資料，請確認 Google Sheet 是否有正確填寫日期與心跳率。")
+    st.error("目前沒有資料")
     st.stop()
 
 st.title("紅葉國小疲勞監控系統")
 
 page = st.selectbox(
     "選擇頁面",
-    ["團體監控", "個人監控", "選手狀態總覽", "新增資料"]
+    [
+        "團體監控",
+        "個人監控",
+        "選手狀態總覽",
+        "新增資料"
+    ]
 )
 
+# =========================
+# 團體監控
+# =========================
 
 if page == "團體監控":
-    st.subheader("團體靜止心跳率")
 
-    group_df = df.groupby("日期", as_index=False)["平均心跳率"].mean()
+    st.subheader("團體平均靜止心跳率")
+
+    group_df = df.groupby(
+        "日期",
+        as_index=False
+    )["平均心跳率"].mean()
+
     latest_avg = group_df.iloc[-1]["平均心跳率"]
+
     group_avg_line = group_df["平均心跳率"].mean()
 
-    st.metric("今日團體平均", f"{latest_avg:.1f} bpm")
+    st.metric(
+        "今日團體平均",
+        f"{latest_avg:.1f} bpm"
+    )
 
     fig = px.line(
         group_df,
@@ -111,16 +144,22 @@ if page == "團體監控":
 
     fig.update_layout(
         height=420,
-        margin=dict(l=10, r=10, t=50, b=10),
         xaxis_title="日期",
         yaxis_title="心跳率"
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
 
+# =========================
+# 個人監控
+# =========================
 
 elif page == "個人監控":
-    st.subheader("個人靜止心跳率")
+
+    st.subheader("個人平均靜止心跳率")
 
     athletes = sorted(df["選手"].unique())
 
@@ -129,8 +168,12 @@ elif page == "個人監控":
         athletes
     )
 
-    athlete_df = df[df["選手"] == selected_athlete]
+    athlete_df = df[
+        df["選手"] == selected_athlete
+    ]
+
     latest_hr = athlete_df.iloc[-1]["平均心跳率"]
+
     athlete_avg_line = athlete_df["平均心跳率"].mean()
 
     st.metric(
@@ -154,31 +197,47 @@ elif page == "個人監控":
 
     fig.update_layout(
         height=420,
-        margin=dict(l=10, r=10, t=50, b=10),
         xaxis_title="日期",
         yaxis_title="心跳率"
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
 
+# =========================
+# 選手狀態總覽
+# =========================
 
 elif page == "選手狀態總覽":
+
     st.subheader("選手狀態總覽")
 
     latest_date = df["日期"].max()
 
-    today_df = df[df["日期"] == latest_date][
-        ["選手", "平均心跳率"]
-    ].rename(columns={
-        "選手": "選手姓名",
-        "平均心跳率": "今日靜止心跳率"
-    })
+    today_df = df[
+        df["日期"] == latest_date
+    ][["選手", "平均心跳率"]]
 
-    avg_df = df.groupby("選手", as_index=False)["平均心跳率"].mean()
-    avg_df = avg_df.rename(columns={
-        "選手": "選手姓名",
-        "平均心跳率": "平均靜止心跳率"
-    })
+    today_df = today_df.rename(
+        columns={
+            "選手": "選手姓名",
+            "平均心跳率": "今日靜止心跳率"
+        }
+    )
+
+    avg_df = df.groupby(
+        "選手",
+        as_index=False
+    )["平均心跳率"].mean()
+
+    avg_df = avg_df.rename(
+        columns={
+            "選手": "選手姓名",
+            "平均心跳率": "平均靜止心跳率"
+        }
+    )
 
     overview_df = today_df.merge(
         avg_df,
@@ -193,46 +252,64 @@ elif page == "選手狀態總覽":
     )
 
     overview_df["平均靜止心跳率"] = (
-    overview_df["平均靜止心跳率"]
-    .round(1)
-    .map(lambda x: f"{x:.1f}")
-)
+        overview_df["平均靜止心跳率"]
+        .round(1)
+    )
+
+    def get_status(row):
+
+        today = row["今日靜止心跳率"]
+        avg = row["平均靜止心跳率"]
+
+        diff = today - avg
+
+        if diff > 2:
+            return "🔴"
+
+        elif abs(diff) <= 2:
+            return "🟡"
+
+        else:
+            return "🟢"
 
     overview_df["狀態"] = overview_df.apply(
-        lambda row:
-        "🔴" if row["今日靜止心跳率"] - row["平均靜止心跳率"] > 2
-        else (
-            "🟡" if abs(row["今日靜止心跳率"] - row["平均靜止心跳率"]) <= 2
-            else "🟢"
-        ),
+        get_status,
         axis=1
     )
 
-    overview_df = overview_df[
-        ["選手姓名", "今日靜止心跳率", "平均靜止心跳率", "狀態"]
-    ]
+    def color_today_hr(row):
 
-    def highlight_status(row):
         today = row["今日靜止心跳率"]
         avg = row["平均靜止心跳率"]
+
         diff = today - avg
 
-        styles = ["", "", "", ""]
+        styles = [
+            "",
+            "",
+            "",
+            ""
+        ]
 
         if diff > 2:
-            styles[1] = "color: red; font-weight: bold"
-            styles[3] = "color: red; font-weight: bold; font-size: 22px"
-        elif -2 <= diff <= 2:
+
+            styles[1] = "color:red;font-weight:bold"
+            styles[3] = "font-size:22px"
+
+        elif abs(diff) <= 2:
+
             styles[1] = ""
-            styles[3] = "font-size: 22px"
+            styles[3] = "font-size:22px"
+
         else:
-            styles[1] = "color: green; font-weight: bold"
-            styles[3] = "color: green; font-weight: bold; font-size: 22px"
+
+            styles[1] = "color:green;font-weight:bold"
+            styles[3] = "font-size:22px"
 
         return styles
 
     styled_df = overview_df.style.apply(
-        highlight_status,
+        color_today_hr,
         axis=1
     )
 
@@ -243,18 +320,23 @@ elif page == "選手狀態總覽":
     )
 
     st.caption("""
-    🔴 高於個人平均 2 bpm 以上：疲勞風險偏高  
-    🟡 接近個人平均（±2 bpm）：正常波動  
-    🟢 低於個人平均 2 bpm 以上：恢復狀態良好
-    """)
+🔴 高於個人平均 2 bpm 以上：疲勞風險偏高  
+🟡 接近個人平均（±2 bpm）：正常波動  
+🟢 低於個人平均 2 bpm 以上：恢復狀態良好
+""")
 
+# =========================
+# 新增資料
+# =========================
 
 elif page == "新增資料":
+
     st.subheader("新增今日資料")
 
     athletes = sorted(df["選手"].unique())
 
     with st.form("add_data_form"):
+
         input_date = st.date_input(
             "日期",
             value=date.today()
@@ -272,9 +354,12 @@ elif page == "新增資料":
             step=1
         )
 
-        submitted = st.form_submit_button("送出資料")
+        submitted = st.form_submit_button(
+            "送出資料"
+        )
 
         if submitted:
+
             payload = {
                 "date": f"{input_date.month}月{input_date.day}日",
                 "athlete": selected_athlete,
@@ -287,11 +372,22 @@ elif page == "新增資料":
             )
 
             if response.status_code == 200:
-                st.success("資料已成功送出！請重新整理頁面查看更新。")
-                st.cache_data.clear()
-            else:
-                st.error("送出失敗，請檢查 Apps Script 權限。")
 
+                st.success(
+                    "資料已成功送出！"
+                )
+
+                st.cache_data.clear()
+
+            else:
+
+                st.error(
+                    "送出失敗，請檢查 Apps Script 權限。"
+                )
 
 with st.expander("查看資料"):
-    st.dataframe(df, use_container_width=True)
+
+    st.dataframe(
+        df,
+        use_container_width=True
+    )
