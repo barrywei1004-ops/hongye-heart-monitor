@@ -184,17 +184,16 @@ elif page == "選手狀態總覽":
         on="選手姓名",
         how="left"
     )
+ overview_df["今日靜止心跳率"] = (
+        overview_df["今日靜止心跳率"]
+        .round(0)
+        .astype(int)
+    )
 
-    overview_df["今日靜止心跳率"] = (
-    overview_df["今日靜止心跳率"]
-    .round(0)
-    .astype(int)
-)
-
-overview_df["平均靜止心跳率"] = (
-    overview_df["平均靜止心跳率"]
-    .round(1)
-)
+    overview_df["平均靜止心跳率"] = (
+        overview_df["平均靜止心跳率"]
+        .round(1)
+    )
 
     overview_df["狀態"] = overview_df.apply(
         lambda row:
