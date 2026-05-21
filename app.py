@@ -6,7 +6,7 @@ from datetime import date
 
 st.set_page_config(page_title="紅葉國小疲勞監控系統", layout="centered")
 
-SHEET_ID = "1ySyEo3isdzzpOtqvitNZrrW-ucznre5RLsFxRLn6Czs"
+SHEET_ID = "1ySyEo3isdzzpOtqvitNZrrW-ucznre5RLsFxRLn6Czs" 
 CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
 
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyNeX3uM-rhdY428GM44G7CmQfIxl9s_jwZLkL5z0nZm65dV8skOKfFLeuJmRazUChO/exec"
