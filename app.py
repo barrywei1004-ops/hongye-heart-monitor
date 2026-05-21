@@ -308,10 +308,14 @@ elif page == "選手狀態總覽":
 
         return styles
 
-    styled_df = overview_df.style.apply(
-        color_today_hr,
-        axis=1
-    )
+    styled_df = (
+    overview_df.style
+    .apply(color_today_hr, axis=1)
+    .format({
+        "今日靜止心跳率": "{:.0f}",
+        "平均靜止心跳率": "{:.1f}"
+    })
+)
 
     st.dataframe(
         styled_df,
