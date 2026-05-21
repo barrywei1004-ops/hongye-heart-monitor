@@ -179,12 +179,13 @@ elif page == "選手狀態總覽":
         "平均心跳率": "平均靜止心跳率"
     })
 
-    overview_df = today_df.merge(
+        overview_df = today_df.merge(
         avg_df,
         on="選手姓名",
         how="left"
     )
- overview_df["今日靜止心跳率"] = (
+
+    overview_df["今日靜止心跳率"] = (
         overview_df["今日靜止心跳率"]
         .round(0)
         .astype(int)
