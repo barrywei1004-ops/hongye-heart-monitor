@@ -335,7 +335,7 @@ elif page == "選手狀態總覽":
 
 elif page == "新增資料":
 
-    st.subheader("新增今日資料")
+    st.subheader("新增今日資料（單筆）")
 
     athletes = sorted(df["選手"].unique())
 
