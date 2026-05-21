@@ -78,7 +78,7 @@ if df.empty:
     st.error("目前沒有可用資料，請確認 Google Sheet 是否有正確填寫日期與心跳率。")
     st.stop()
 
-st.title("紅葉心跳監控")
+st.title("紅葉國小疲勞監控系統")
 
 page = st.selectbox(
     "選擇頁面",
