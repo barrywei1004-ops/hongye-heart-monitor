@@ -193,9 +193,10 @@ elif page == "選手狀態總覽":
     )
 
     overview_df["平均靜止心跳率"] = (
-        overview_df["平均靜止心跳率"]
-        .round(1)
-    )
+    overview_df["平均靜止心跳率"]
+    .round(1)
+    .map(lambda x: f"{x:.1f}")
+)
 
     overview_df["狀態"] = overview_df.apply(
         lambda row:
