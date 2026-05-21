@@ -335,63 +335,122 @@ elif page == "選手狀態總覽":
 
 elif page == "新增資料":
 
-    st.subheader("新增今日資料（單筆）")
+    st.subheader("新增今日資料")
 
     athletes = sorted(df["選手"].unique())
 
-    with st.form("add_data_form"):
+    input_mode = st.radio(
+        "選擇輸入方式",
+        ["單筆輸入", "多筆輸入"],
+        horizontal=True
+    )
+
+    # =========================
+    # 單筆輸入
+    # =========================
+    if input_mode == "單筆輸入":
+
+        with st.form("single_add_form"):
+
+            input_date = st.date_input(
+                "日期",
+                value=date.today()
+            )
+
+            selected_athlete = st.selectbox(
+                "選擇選手",
+                athletes
+            )
+
+            heart_rate = st.number_input(
+                "輸入心跳率",
+                min_value=30,
+                max_value=200,
+                step=1
+            )
+
+            submitted = st.form_submit_button("送出資料")
+
+            if submitted:
+
+                payload = {
+                    "date": f"{input_date.month}月{input_date.day}日",
+                    "athlete": selected_athlete,
+                    "heartRate": int(heart_rate)
+                }
+
+                response = requests.post(
+                    WEB_APP_URL,
+                    json=payload
+                )
+
+                if response.status_code == 200:
+                    st.success("單筆資料已成功送出！")
+                    st.cache_data.clear()
+                else:
+                    st.error("送出失敗，請檢查 Apps Script 權限。")
+
+    # =========================
+    # 多筆輸入
+    # =========================
+    elif input_mode == "多筆輸入":
+
+        st.info("請輸入多位選手今日靜止心跳率，空白者不會送出。")
 
         input_date = st.date_input(
             "日期",
-            value=date.today()
+            value=date.today(),
+            key="multi_date"
         )
 
-        selected_athlete = st.selectbox(
-            "選擇選手",
-            athletes
-        )
+        with st.form("multi_add_form"):
 
-        heart_rate = st.number_input(
-            "輸入心跳率",
-            min_value=30,
-            max_value=200,
-            step=1
-        )
+            heart_rate_inputs = {}
 
-        submitted = st.form_submit_button(
-            "送出資料"
-        )
+            for athlete in athletes:
 
-        if submitted:
-
-            payload = {
-                "date": f"{input_date.month}月{input_date.day}日",
-                "athlete": selected_athlete,
-                "heartRate": int(heart_rate)
-            }
-
-            response = requests.post(
-                WEB_APP_URL,
-                json=payload
-            )
-
-            if response.status_code == 200:
-
-                st.success(
-                    "資料已成功送出！"
+                heart_rate_inputs[athlete] = st.number_input(
+                    f"{athlete} 靜止心跳率",
+                    min_value=0,
+                    max_value=200,
+                    value=0,
+                    step=1,
+                    key=f"hr_{athlete}"
                 )
 
-                st.cache_data.clear()
+            submitted = st.form_submit_button("送出多筆資料")
 
-            else:
+            if submitted:
 
-                st.error(
-                    "送出失敗，請檢查 Apps Script 權限。"
-                )
+                success_count = 0
+                fail_count = 0
 
-with st.expander("查看資料"):
+                for athlete, heart_rate in heart_rate_inputs.items():
 
-    st.dataframe(
-        df,
-        use_container_width=True
-    )
+                    if heart_rate > 0:
+
+                        payload = {
+                            "date": f"{input_date.month}月{input_date.day}日",
+                            "athlete": athlete,
+                            "heartRate": int(heart_rate)
+                        }
+
+                        response = requests.post(
+                            WEB_APP_URL,
+                            json=payload
+                        )
+
+                        if response.status_code == 200:
+                            success_count += 1
+                        else:
+                            fail_count += 1
+
+                if success_count > 0:
+                    st.success(f"已成功送出 {success_count} 筆資料！")
+                    st.cache_data.clear()
+
+                if fail_count > 0:
+                    st.error(f"有 {fail_count} 筆資料送出失敗，請檢查 Apps Script 權限。")
+
+                if success_count == 0 and fail_count == 0:
+                    st.warning("尚未輸入任何心跳率資料。")
