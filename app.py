@@ -85,6 +85,7 @@ page = st.selectbox(
     ["團體監控", "個人監控", "選手狀態總覽", "新增資料"]
 )
 
+
 if page == "團體監控":
     st.subheader("團體靜止心跳率")
 
@@ -179,7 +180,7 @@ elif page == "選手狀態總覽":
         "平均心跳率": "平均靜止心跳率"
     })
 
-        overview_df = today_df.merge(
+    overview_df = today_df.merge(
         avg_df,
         on="選手姓名",
         how="left"
