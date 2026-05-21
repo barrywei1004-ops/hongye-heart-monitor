@@ -133,7 +133,7 @@ elif page == "個人監控":
     athlete_avg_line = athlete_df["平均心跳率"].mean()
 
     st.metric(
-        f"{selected_athlete} 今日心跳率",
+        f"{selected_athlete} 今日靜止心跳率",
         f"{latest_hr:.1f} bpm"
     )
 
