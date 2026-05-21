@@ -82,7 +82,7 @@ st.title("紅葉國小疲勞監控系統")
 
 page = st.selectbox(
     "選擇頁面",
-    ["團體監控", "個人監控", "新增資料"]
+    ["團體監控", "個人監控", "選手狀態總覽", "新增資料"]
 )
 
 if page == "團體監控":
@@ -159,6 +159,43 @@ elif page == "個人監控":
     )
 
     st.plotly_chart(fig, use_container_width=True)
+
+elif page == "選手狀態總覽":
+    st.subheader("選手狀態總覽")
+
+    latest_date = df["日期"].max()
+
+    today_df = df[df["日期"] == latest_date][
+        ["選手", "平均心跳率"]
+    ].rename(columns={
+        "選手": "選手姓名",
+        "平均心跳率": "今日靜止心跳率"
+    })
+
+    avg_df = df.groupby("選手", as_index=False)["平均心跳率"].mean()
+    avg_df = avg_df.rename(columns={
+        "選手": "選手姓名",
+        "平均心跳率": "平均靜止心跳率"
+    })
+
+    overview_df = today_df.merge(
+        avg_df,
+        on="選手姓名",
+        how="left"
+    )
+
+    overview_df["今日靜止心跳率"] = overview_df["今日靜止心跳率"].round(1)
+    overview_df["平均靜止心跳率"] = overview_df["平均靜止心跳率"].round(1)
+
+    overview_df = overview_df[
+        ["選手姓名", "今日靜止心跳率", "平均靜止心跳率"]
+    ]
+
+    st.dataframe(
+        overview_df,
+        use_container_width=True,
+        hide_index=True
+    )
 
 
 elif page == "新增資料":
